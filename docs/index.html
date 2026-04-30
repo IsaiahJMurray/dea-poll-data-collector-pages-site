@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DEA Poll Data Collector</title>
+  <meta
+    name="description"
+    content="A team-facing project site for DEA Poll Data Collector, a tool for automating dielectric analysis during resin exposure."
+  />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="noise"></div>
+
+  <header class="site-header">
+    <nav class="nav">
+      <a class="brand" href="#top" aria-label="DEA Poll Data Collector home">
+        <span class="brand-mark"></span>
+        <span>DEA Poll Data Collector</span>
+      </a>
+      <div class="nav-links">
+        <a href="#overview">Overview</a>
+        <a href="#design">Design</a>
+        <a href="#demo">Demo</a>
+        <a href="#install">Install</a>
+        <a href="#takeaways">Takeaways</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Formlabs project · dielectric analysis · resin exposure</p>
+        <h1>Automating dielectric analysis during resin exposure.</h1>
+        <p class="lede">
+          DEA Poll Data Collector is a Python application that coordinates resin exposure, impedance
+          measurement, ADC sampling, live plotting, and structured data export into one repeatable workflow.
+        </p>
+        <div class="hero-actions">
+          <a class="button primary" href="https://github.com/isaiahmurray-sudo/resin-poll-data-collector" target="_blank" rel="noreferrer">
+            View GitHub Repo
+          </a>
+          <a class="button secondary" href="#install">Run Locally</a>
+        </div>
+      </div>
+
+      <div class="hero-panel" aria-label="Project system summary">
+        <div class="panel-topline">
+          <span class="status-dot"></span>
+          <span>poll_session.active</span>
+        </div>
+        <div class="terminal-card">
+<pre><code>exposure_schedule = [
+  {"duration_s": 5,  "intensity": 0.0},
+  {"duration_s": 5,  "intensity": 1.0},
+  {"duration_s": 10, "intensity": 0.0}
+]
+
+streams = ["LCR impedance", "ADC voltage", "printer debug events"]
+
+save_format = {
+  "metadata": "json",
+  "measurements": ["lcr.csv", "adc.csv", "poi.csv"]
+}</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="overview" class="section two-column">
+      <div>
+        <p class="section-label">Big idea</p>
+        <h2>Make resin experiments easier to run, repeat, and analyze.</h2>
+      </div>
+      <div class="body-copy">
+        <p>
+          The goal of this project was to automate the data collection workflow for dielectric
+          analysis during resin exposure. Instead of manually coordinating exposure timing,
+          instrument reads, printer-state information, and file organization, the application
+          gives the team one interface for configuring a poll and collecting synchronized data.
+        </p>
+        <p>
+          The most important win was proving that the workflow could be automated before the
+          analysis itself was complete. That matters because a reliable data collection pipeline
+          makes future material experiments faster, more consistent, and easier to compare.
+        </p>
+      </div>
+    </section>
+
+    <section class="section cards-grid" aria-label="Project highlights">
+      <article class="feature-card">
+        <div class="card-icon">01</div>
+        <h3>Multi-source data collection</h3>
+        <p>
+          Collects impedance and phase from an LCR instrument, voltage from an ADC on a custom board,
+          and timing or state events from printer debug mode.
+        </p>
+      </article>
+
+      <article class="feature-card">
+        <div class="card-icon">02</div>
+        <h3>Experiment setup GUI</h3>
+        <p>
+          Provides a simple PyQt interface for resin type, trial notes, exposure segments, frequency,
+          push parameters, connection settings, and debug mode.
+        </p>
+      </article>
+
+      <article class="feature-card">
+        <div class="card-icon">03</div>
+        <h3>Live graphs</h3>
+        <p>
+          Displays impedance, phase, ionic-viscosity proxy values, and ADC voltage during the poll,
+          making it easier to see whether a run is behaving as expected.
+        </p>
+      </article>
+
+      <article class="feature-card">
+        <div class="card-icon">04</div>
+        <h3>Structured exports</h3>
+        <p>
+          Saves raw LCR, ADC, and point-of-interest streams as CSV files with JSON metadata so later
+          analysis can start from clean, predictable files.
+        </p>
+      </article>
+    </section>
+
+    <section id="design" class="section">
+      <div class="section-heading">
+        <p class="section-label">System design</p>
+        <h2>Three data paths, one synchronized poll.</h2>
+      </div>
+
+      <div class="system-diagram" role="img" aria-label="System diagram for DEA Poll Data Collector">
+        <div class="diagram-node">
+          <span class="node-kicker">Input</span>
+          <strong>GUI parameters</strong>
+          <small>resin, exposure schedule, frequency, notes</small>
+        </div>
+        <div class="diagram-arrow">→</div>
+        <div class="diagram-node accent">
+          <span class="node-kicker">Core</span>
+          <strong>Poll Controller</strong>
+          <small>threads, timing, progress, queues</small>
+        </div>
+        <div class="diagram-arrow">→</div>
+        <div class="diagram-stack">
+          <div class="diagram-node">
+            <span class="node-kicker">Stream</span>
+            <strong>LCR</strong>
+            <small>impedance and phase</small>
+          </div>
+          <div class="diagram-node">
+            <span class="node-kicker">Stream</span>
+            <strong>ADC custom board</strong>
+            <small>voltage over time</small>
+          </div>
+          <div class="diagram-node">
+            <span class="node-kicker">Stream</span>
+            <strong>Printer debug mode</strong>
+            <small>exposure and state events</small>
+          </div>
+        </div>
+        <div class="diagram-arrow">→</div>
+        <div class="diagram-node">
+          <span class="node-kicker">Output</span>
+          <strong>Poll dataset</strong>
+          <small>CSV streams plus JSON metadata</small>
+        </div>
+      </div>
+
+      <div class="body-copy wide">
+        <p>
+          The application separates the experiment into controller interfaces. The LCR path handles
+          impedance measurement, the ADC path records voltage from a custom board, and printer debug
+          mode provides exposure and system-state context. The central poll controller starts the run,
+          manages timing, collects samples through worker threads, and saves the result as an organized
+          dataset.
+        </p>
+      </div>
+    </section>
+
+    <section id="demo" class="section">
+      <div class="section-heading">
+        <p class="section-label">Screenshots and demo</p>
+        <h2>Visual record of the workflow.</h2>
+        <p>
+          These screenshots show the collector before and after a simulated poll run. Add more screenshots
+          by placing them in <code>docs/assets/</code> and copying one of the figure cards below.
+        </p>
+      </div>
+
+      <div class="media-grid">
+        <figure class="media-card">
+          <img src="assets/gui-overview.png" alt="DEA Poll Data Collector GUI overview screenshot placeholder" />
+          <figcaption>GUI for configuring a poll, including trial information, exposure segments, frequency, and debug mode.</figcaption>
+        </figure>
+
+        <figure class="media-card">
+          <img src="assets/live-graphs.png" alt="Live LCR and ADC graph screenshot placeholder" />
+          <figcaption>Live plotting view for impedance, phase, ionic-viscosity proxy values, and ADC voltage.</figcaption>
+        </figure>      </div>
+
+      <div class="video-card draft-video-card">
+        <div>
+          <p class="section-label">Video</p>
+          <h3>Draft walkthrough clip</h3>
+          <p>
+            The current embedded clip is a short draft screen recording. Before final submission, replace
+            it with the completed 4 to 5 minute project video or link to the longer hosted version.
+          </p>
+        </div>
+        <div class="video-embed">
+          <video controls preload="metadata">
+            <source src="assets/draft-demo-recording.mp4" type="video/mp4" />
+            Your browser does not support embedded video. Replace this block with a link to the final video.
+          </video>
+        </div>
+      </div>
+    </section>
+
+    <section id="install" class="section split-panel">
+      <div>
+        <p class="section-label">Install and run</p>
+        <h2>Run the collector locally.</h2>
+        <p>
+          The public repo contains a stripped project version with sensitive project information omitted.
+          Install the Python dependencies, then launch the PyQt application.
+        </p>
+      </div>
+
+      <div class="code-card">
+<pre><code>git clone https://github.com/isaiahmurray-sudo/resin-poll-data-collector.git
+cd resin-poll-data-collector
+
+pip install -r requirements.txt
+python poll_data_collector.py</code></pre>
+      </div>
+    </section>
+
+    <section id="takeaways" class="section two-column">
+      <div>
+        <p class="section-label">Key takeaways</p>
+        <h2>The hard part was not only measuring. It was coordinating.</h2>
+      </div>
+      <div class="body-copy">
+        <p>
+          The project showed that the experiment workflow could be turned into a repeatable software
+          pipeline. A single poll now has a defined setup, live feedback, synchronized measurement streams,
+          and a consistent saved output format.
+        </p>
+        <p>
+          The next step is to use the cleaner data pipeline to improve the analysis layer: comparing runs,
+          refining material-state metrics, and connecting dielectric behavior more directly to resin exposure
+          and cure behavior.
+        </p>
+      </div>
+    </section>
+
+    <section class="section attribution">
+      <p class="section-label">Attribution</p>
+      <p>
+        Built with Python, PyQt6, matplotlib, pandas, numpy, PyVISA, Paramiko, and pytest. Project repository:
+        <a href="https://github.com/isaiahmurray-sudo/resin-poll-data-collector" target="_blank" rel="noreferrer">
+          github.com/isaiahmurray-sudo/resin-poll-data-collector
+        </a>.
+      </p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>DEA Poll Data Collector · team project site · built for GitHub Pages</p>
+  </footer>
+</body>
+</html>
